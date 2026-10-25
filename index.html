@@ -3,113 +3,270 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090d13">
 <title>АТЛАС — личная AI-организация</title>
 <style>
 :root{color-scheme:dark;--bg:#080b10;--panel:rgba(255,255,255,.065);--line:rgba(220,235,255,.13);--text:#f2f6fc;--muted:#91a0b4;--blue:#8bd8ff;--green:#9ce6c0;--r:22px}
 *{box-sizing:border-box}
-html{min-height:100%;background:var(--bg)}
-body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -20%,#1c3449 0,transparent 45%),var(--bg);color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
-button,input,select{font:inherit}
-button{cursor:pointer;color:inherit;-webkit-tap-highlight-color:transparent}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.app{width:100%;max-width:760px;margin:0 auto;min-height:100vh;padding:calc(12px + env(safe-area-inset-top)) 16px calc(112px + env(safe-area-inset-bottom))}
-header{padding:14px 4px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.brand{display:flex;align-items:center;gap:10px;min-width:0}
-.logo{width:44px;height:44px;flex:0 0 44px;border-radius:15px;background:linear-gradient(145deg,#dff6ff,#61b8eb 55%,#326ca8);display:grid;place-items:center;color:#07111c;font-weight:900;font-size:20px;box-shadow:0 5px 22px #4eafe733}
-.eyebrow{color:var(--blue);font-size:10px;letter-spacing:.12em;font-weight:800}
-.brand h1{font-size:22px;margin:1px 0 0;letter-spacing:.04em}
-.status{border:1px solid var(--line);border-radius:999px;padding:7px 9px;color:var(--green);font-size:10px;white-space:nowrap}
+body{margin:0;background:radial-gradient(ellipse at 50% -20%,#1c3449 0,transparent 45%),var(--bg);color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;color:inherit}
+.app{max-width:760px;margin:auto;min-height:100vh;padding:env(safe-area-inset-top) 16px calc(100px + env(safe-area-inset-bottom))}
+header{padding:22px 4px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:15px;background:linear-gradient(145deg,#dff6ff,#61b8eb 55%,#326ca8);display:grid;place-items:center;color:#07111c;font-weight:900;font-size:20px}
+.eyebrow{color:var(--blue);font-size:11px;letter-spacing:.17em;font-weight:800}
+.brand h1{font-size:22px;margin:0;letter-spacing:.04em}
+.status{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--green);font-size:11px;white-space:nowrap}
 .hero{padding:24px 22px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(140deg,rgba(134,210,255,.13),rgba(255,255,255,.035) 55%);box-shadow:0 18px 50px #0004}
-.pill{display:inline-block;font-size:11px;color:var(--blue);border:1px solid #8bd8ff42;border-radius:99px;padding:6px 10px}
-.hero h2{font-size:clamp(28px,7vw,42px);line-height:1.08;margin:13px 0;letter-spacing:-.04em}
-.hero p{color:var(--muted);margin:0;font-size:14px}
-.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}
-.metric,.card,.section{min-width:0;border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:14px}
-.metric span{display:block;font-size:11px;color:var(--muted)}
-.metric strong{display:block;font-size:clamp(19px,5vw,24px);margin-top:5px;overflow-wrap:anywhere}
-.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:24px 2px 12px}
-.section-head h3{font-size:16px;margin:0}
-.subtle{font-size:11px;color:var(--muted)}
+.hero h2{font-size:clamp(28px,7vw,42px);line-height:1.08;margin:12px 0;letter-spacing:-.04em}
+.hero p{color:var(--muted);margin:0}
+.pill{display:inline-block;font-size:12px;color:var(--blue);border:1px solid #8bd8ff42;border-radius:99px;padding:6px 10px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.metric,.card,.section{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:15px}
+.metric span{display:block;font-size:12px;color:var(--muted)}
+.metric strong{display:block;font-size:24px;margin-top:5px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:25px 2px 12px}
+.section-head h3{font-size:17px;margin:0}
+.subtle{font-size:12px;color:var(--muted)}
 .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.action{display:flex;align-items:center;gap:10px;text-align:left;min-height:78px;width:100%;padding:12px;border:1px solid var(--line);border-radius:18px;background:var(--panel);min-width:0}
-.symbol{width:39px;height:39px;flex:0 0 39px;border-radius:13px;display:grid;place-items:center;background:#8bd8ff16;font-size:19px}
-.action strong{display:block;font-size:13px}
-.action small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
-.card:active,.action:active{transform:scale(.985)}
+.action{display:flex;align-items:center;gap:12px;text-align:left;min-height:80px}
+.symbol{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#8bd8ff16;font-size:20px;flex-shrink:0}
+.action strong{display:block;font-size:14px}
+.action small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.card:active{transform:scale(.985)}
 .tasks{display:grid;gap:9px}
-.task{display:flex;gap:11px;align-items:flex-start;min-width:0}
-.task input[type=checkbox]{accent-color:#7ed5ff;width:19px;height:19px;flex:0 0 19px;margin:3px 0 0}
+.task{display:flex;gap:11px;align-items:flex-start}
+.task input[type=checkbox]{accent-color:#7ed5ff;width:19px;height:19px;margin-top:3px;flex-shrink:0}
 .task-body{flex:1;min-width:0}
 .task-title{font-weight:650;overflow-wrap:anywhere}
 .task.done .task-title{text-decoration:line-through;color:var(--muted)}
-.task-meta{font-size:11px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
-.delete{border:0;background:transparent;color:var(--muted);font-size:23px;line-height:1;padding:0 4px}
+.task-meta{font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.delete{border:0;background:transparent;color:var(--muted);font-size:20px;padding:0 4px}
 .empty{color:var(--muted);text-align:center;padding:22px 8px}
 .form{display:grid;gap:10px;margin-top:13px}
-.field{display:block;width:100%;min-width:0;border:1px solid var(--line);background:#05080d;color:var(--text);border-radius:13px;padding:12px 13px;outline:none}
-.field::placeholder{color:#68788c}
-.primary,.secondary{border-radius:13px;padding:12px 14px;border:1px solid #8bd8ff4d;background:linear-gradient(135deg,#8bd8ff,#4c9bd4);color:#07111a;font-weight:750}
+.field{width:100%;border:1px solid var(--line);background:#05080d;color:var(--text);border-radius:13px;padding:12px 13px;outline:none;min-width:0}
+.primary,.secondary{border-radius:13px;padding:12px 15px;border:1px solid #8bd8ff4d;background:linear-gradient(135deg,#8bd8ff,#4c9bd4);color:#07111a;font-weight:750}
 .secondary{background:#ffffff12;color:var(--text);border-color:var(--line)}
-.form-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px}
-.form-row .primary{white-space:nowrap}
-.bottom-nav{position:fixed;z-index:20;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom));width:min(720px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:7px;border:1px solid #d7eaff20;border-radius:23px;background:rgba(15,21,30,.94);box-shadow:0 12px 40px #0009;-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px)}
-.nav-btn{min-width:0;background:transparent;border:0;border-radius:15px;padding:7px 1px;color:var(--muted);font-size:10px;display:grid;justify-items:center;align-content:center;gap:3px}
-.nav-btn span{font-size:18px;line-height:1.15}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.bottom-nav{position:fixed;z-index:5;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));width:min(720px,calc(100% - 24px));display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:7px;border:1px solid #d7eaff20;border-radius:23px;background:rgba(15,21,30,.92);box-shadow:0 12px 40px #0009;backdrop-filter:blur(22px)}
+.nav-btn{background:transparent;border:0;border-radius:15px;padding:8px 2px;color:var(--muted);font-size:10px;display:grid;justify-items:center;gap:4px}
+.nav-btn span{font-size:19px}
 .nav-btn.active{color:var(--blue);background:#8bd8ff14}
 .page{display:none}
-.page.active{display:block;animation:appear .16s ease-out}
-@keyframes appear{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.page.active{display:block}
 .list{display:grid;gap:10px}
-.team-card{display:flex;gap:12px;align-items:flex-start}
-.avatar{width:42px;height:42px;flex:0 0 42px;border-radius:14px;background:#8bd8ff15;display:grid;place-items:center;font-size:19px}
-.team-card h4{margin:0 0 4px;font-size:14px}
-.team-card p{margin:0;color:var(--muted);font-size:12px}
-.tag{display:inline-block;font-size:9px;color:var(--blue);border:1px solid #8bd8ff35;border-radius:99px;padding:4px 7px;margin-top:8px}
-.notice{border-left:3px solid var(--blue);padding:10px 12px;background:#8bd8ff0b;border-radius:0 12px 12px 0;color:var(--muted);font-size:11px;margin-top:14px}
-.report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.report-grid .metric strong{font-size:17px}
+.team-card{display:flex;gap:13px;align-items:flex-start}
+.avatar{width:43px;height:43px;border-radius:15px;background:#8bd8ff15;display:grid;place-items:center;font-size:20px;flex-shrink:0}
+.team-card h4{margin:0 0 3px}
+.team-card p{margin:0;color:var(--muted);font-size:13px}
+.tag{display:inline-block;font-size:10px;color:var(--blue);border:1px solid #8bd8ff35;border-radius:99px;padding:3px 7px;margin-top:8px}
+.notice{border-left:3px solid var(--blue);padding:10px 12px;background:#8bd8ff0b;border-radius:0 12px 12px 0;color:var(--muted);font-size:12px;margin-top:14px}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.report-grid .metric strong{font-size:19px}
 .bar{height:7px;background:#ffffff12;border-radius:99px;overflow:hidden;margin-top:9px}
 .bar i{display:block;height:100%;width:28%;background:linear-gradient(90deg,#4d9ed6,#a6e6ff);border-radius:99px}
-.footer{text-align:center;color:#68788c;font-size:10px;margin:24px 0 8px}
-@media(min-width:600px){.app{padding-left:24px;padding-right:24px}.hero{padding:32px}.actions{grid-template-columns:repeat(4,minmax(0,1fr))}.action{display:block;padding:15px}.action .symbol{margin-bottom:12px}.metric{padding:18px}}
-@media(max-width:360px){.app{padding-left:12px;padding-right:12px}header{gap:6px}.brand{gap:8px}.logo{width:39px;height:39px;flex-basis:39px}.brand h1{font-size:19px}.eyebrow{font-size:8px;letter-spacing:.07em}.status{font-size:9px;padding:6px}.hero{padding:20px 17px}.metric{padding:10px 8px}.nav-btn{font-size:9px}}
+.footer{text-align:center;color:#68788c;font-size:11px;margin:24px 0 8px}
+.task-buttons{display:flex;gap:5px;align-items:center}
+.edit{border:1px solid var(--line);background:#ffffff0b;border-radius:9px;padding:5px 8px;font-size:12px}
+.task-form-actions{display:flex;gap:8px}
+.task-form-actions button{flex:1}
+@media(max-width:380px){.form-grid{grid-template-columns:1fr}.metrics{gap:6px}.metric{padding:11px}.metric strong{font-size:20px}.nav-btn{font-size:9px}}
+@media(min-width:600px){.app{padding-left:24px;padding-right:24px}.hero{padding:32px}.actions{grid-template-columns:repeat(4,minmax(0,1fr))}.action{display:block}.action .symbol{margin-bottom:12px}.metric{padding:18px}}
 </style>
 </head>
 <body>
 <div class="app">
-<header><div class="brand"><div class="logo" aria-hidden="true">A</div><div><div class="eyebrow">PERSONAL AI ORGANIZATION</div><h1>АТЛАС</h1></div></div><div class="status">● DEMO · OFFLINE</div></header>
+<header>
+  <div class="brand"><div class="logo">A</div><div><div class="eyebrow">PERSONAL AI ORGANIZATION</div><h1>АТЛАС</h1></div></div>
+  <div class="status">● DEMO · OFFLINE</div>
+</header>
 <main>
 <section class="page active" id="page-home">
-<div class="hero"><span class="pill">✦ ПАНЕЛЬ УПРАВЛЕНИЯ</span><h2>Система под<br>твоим контролем.</h2><p>Единое пространство для задач, подразделений и проверки результатов. Решения остаются за владельцем.</p></div>
-<div class="metrics"><div class="metric"><span>Активные задачи</span><strong id="m-active">3</strong></div><div class="metric"><span>Выполнено</span><strong id="m-done">0</strong></div><div class="metric"><span>Подразделения</span><strong>4</strong></div></div>
-<div class="section-head"><h3>Быстрый доступ</h3><span class="subtle">Выбери раздел</span></div>
-<div class="actions"><button class="action" data-go="tasks"><span class="symbol">☷</span><span><strong>Задачи</strong><small>План и выполнение</small></span></button><button class="action" data-go="team"><span class="symbol">⌘</span><span><strong>Команда</strong><small>Подразделения</small></span></button><button class="action" data-go="reports"><span class="symbol">▥</span><span><strong>Отчёты</strong><small>Показатели системы</small></span></button><button class="action" data-go="engineering"><span class="symbol">⚙</span><span><strong>Инженерная</strong><small>Контроль качества</small></span></button></div>
-<div class="section-head"><h3>На ближайшее время</h3><button class="secondary" data-go="tasks">Все задачи →</button></div><div id="home-tasks" class="tasks"></div><div class="notice">Демонстрационный прототип. Реальные ИИ-агенты, серверное хранение и внешние интеграции пока не подключены.</div>
+  <div class="hero"><span class="pill">✦ ПАНЕЛЬ УПРАВЛЕНИЯ</span><h2>Система под<br>твоим контролем.</h2><p>Единое пространство для задач, подразделений и проверки результатов. Решения остаются за владельцем.</p></div>
+  <div class="metrics"><div class="metric"><span>Активные задачи</span><strong id="m-active">0</strong></div><div class="metric"><span>Выполнено</span><strong id="m-done">0</strong></div><div class="metric"><span>Подразделения</span><strong>4</strong></div></div>
+  <div class="section-head"><h3>Быстрый доступ</h3><span class="subtle">Выбери раздел</span></div>
+  <div class="actions">
+    <button class="card action" data-go="tasks"><span class="symbol">☷</span><span><strong>Задачи</strong><small>План и выполнение</small></span></button>
+    <button class="card action" data-go="team"><span class="symbol">⌘</span><span><strong>Команда</strong><small>Подразделения</small></span></button>
+    <button class="card action" data-go="reports"><span class="symbol">▥</span><span><strong>Отчёты</strong><small>Показатели системы</small></span></button>
+    <button class="card action" data-go="engineering"><span class="symbol">⚙</span><span><strong>Инженерная</strong><small>Контроль качества</small></span></button>
+  </div>
+  <div class="section-head"><h3>На ближайшее время</h3><button class="secondary" data-go="tasks">Все задачи →</button></div>
+  <div id="home-tasks" class="tasks"></div>
+  <div class="notice">Демонстрационный прототип. Реальные ИИ-агенты, серверное хранение и внешние интеграции пока не подключены.</div>
 </section>
-<section class="page" id="page-tasks"><div class="section-head"><h3>Задачи</h3><span class="subtle">Локальный список</span></div><div class="section"><p class="subtle" style="margin-top:0">Добавляй задачи и отмечай выполнение. Список сохраняется в браузере на этом устройстве.</p><form class="form" id="task-form"><input class="field" id="task-input" maxlength="160" placeholder="Например: проверить структуру проекта" required><div class="form-row"><select class="field" id="task-priority" aria-label="Приоритет задачи"><option>Обычный приоритет</option><option>Высокий приоритет</option><option>Низкий приоритет</option></select><button class="primary" type="submit">Добавить +</button></div></form></div><div class="section-head"><h3>Твой список</h3><span class="subtle" id="task-count"></span></div><div id="all-tasks" class="tasks"></div><div class="notice">Синхронизация между устройствами пока не подключена.</div></section>
-<section class="page" id="page-team"><div class="section-head"><h3>Команда АТЛАС</h3><span class="subtle">Модель организации</span></div><div class="list"><div class="card team-card"><div class="avatar">◈</div><div><h4>ИИ-управляющий</h4><p>Координация плана, распределение задач и подготовка сводок. Пока это описание роли, а не действующий агент.</p><span class="tag">КООРДИНАЦИЯ</span></div></div><div class="card team-card"><div class="avatar">⌕</div><div><h4>КИО — контроль и независимая оценка</h4><p>Проверяет результаты и ищет несоответствия. Сейчас это концепция интерфейса.</p><span class="tag">НЕЗАВИСИМАЯ ПРОВЕРКА</span></div></div><div class="card team-card"><div class="avatar">₽</div><div><h4>Отдел поиска заработка</h4><p>Поиск легальных способов заработка без стартового бюджета и оценка рисков.</p><span class="tag">ИССЛЕДОВАНИЕ</span></div></div><div class="card team-card"><div class="avatar">⚙</div><div><h4>Инженерная служба</h4><p>Поддержка интерфейса, тестирование и исправление ошибок.</p><span class="tag">ТЕХНИЧЕСКОЕ ОБЕСПЕЧЕНИЕ</span></div></div></div><div class="notice">Владелец принимает окончательные решения. Никаких финансовых действий без отдельного разрешения.</div></section>
-<section class="page" id="page-reports"><div class="section-head"><h3>Отчёты</h3><span class="subtle">Состояние прототипа</span></div><div class="report-grid"><div class="metric"><span>Интерфейс</span><strong style="color:var(--green)">Готов</strong><div class="bar"><i style="width:100%"></i></div></div><div class="metric"><span>Локальные задачи</span><strong style="color:var(--green)">Готовы</strong><div class="bar"><i style="width:100%"></i></div></div><div class="metric"><span>Сервер и аккаунты</span><strong>Не подключены</strong><div class="bar"><i style="width:0"></i></div></div><div class="metric"><span>ИИ-автоматизация</span><strong>Не подключена</strong><div class="bar"><i style="width:0"></i></div></div></div><div class="section-head"><h3>Последняя проверка</h3></div><div class="card"><div class="task-title">Базовая навигация и задачи</div><div class="task-meta">Ранее вручную проверялись переходы между разделами, создание, отметка выполнения и удаление задач.</div><span class="tag">ПРОВЕРЕНО ВРУЧНУЮ РАНЕЕ</span></div><div class="notice">Показатели демонстрационные и не означают, что запущены реальные автономные агенты.</div></section>
-<section class="page" id="page-engineering"><div class="section-head"><h3>Инженерная служба</h3><span class="subtle">Контроль качества</span></div><div class="list"><div class="card"><div class="task-title">1. Сохранение задач</div><div class="task-meta">Локальное хранилище браузера. Серверная синхронизация отсутствует.</div><span class="tag">ЛОКАЛЬНО</span></div><div class="card"><div class="task-title">2. Проверка интерфейса</div><div class="task-meta">Навигация, мобильная вёрстка, добавление и удаление задач.</div><span class="tag">БАЗОВЫЙ УРОВЕНЬ</span></div><div class="card"><div class="task-title">3. Следующий этап</div><div class="task-meta">Бесплатная публикация, затем проектирование серверного хранения и автоматизации.</div><span class="tag">ЗАПЛАНИРОВАНО</span></div></div><div class="section-head"><h3>Правила безопасности</h3></div><div class="card">Бюджет: <strong>0 ₽</strong><br>Платные API: запрещены без разрешения.<br>Пароли и ключи: не размещать в коде.<br>Внешние и финансовые действия: только с разрешения владельца.</div></section>
-</main><div class="footer">АТЛАС v0.3 · DEMO BUILD · Не является действующей автономной AI-системой</div>
+
+<section class="page" id="page-tasks">
+  <div class="section-head"><h3>Задачи</h3><span class="subtle">Локальный список</span></div>
+  <div class="section">
+    <p class="subtle" style="margin-top:0">Создавай и редактируй задачи, указывай ответственного, срок, приоритет и статус. Данные сохраняются в браузере на этом устройстве.</p>
+    <form class="form" id="task-form">
+      <input type="hidden" id="task-id">
+      <input class="field" id="task-input" maxlength="160" placeholder="Название задачи" required>
+      <textarea class="field" id="task-notes" maxlength="1000" rows="2" placeholder="Описание или заметка (необязательно)"></textarea>
+      <div class="form-grid"><input class="field" id="task-assignee" maxlength="80" placeholder="Ответственный"><input class="field" id="task-due" type="date" aria-label="Срок выполнения"></div>
+      <div class="form-grid">
+        <select class="field" id="task-priority"><option value="Обычный приоритет">Обычный приоритет</option><option value="Высокий приоритет">Высокий приоритет</option><option value="Низкий приоритет">Низкий приоритет</option></select>
+        <select class="field" id="task-status"><option value="В работе">В работе</option><option value="Ожидает">Ожидает</option><option value="Заблокирована">Заблокирована</option><option value="Выполнено">Выполнено</option></select>
+      </div>
+      <div class="task-form-actions"><button class="primary" id="save-task" type="submit">Добавить задачу +</button><button class="secondary" id="cancel-edit" type="button" hidden>Отмена</button></div>
+    </form>
+  </div>
+  <div class="section-head"><h3>Твой список</h3><span class="subtle" id="task-count"></span></div>
+  <div id="all-tasks" class="tasks"></div>
+  <div class="notice">Синхронизация между устройствами пока не подключена. Не вводи сюда секретные или чувствительные данные.</div>
+</section>
+
+<section class="page" id="page-team">
+  <div class="section-head"><h3>Команда АТЛАС</h3><span class="subtle">Модель организации</span></div>
+  <div class="list">
+    <div class="card team-card"><div class="avatar">◈</div><div><h4>ИИ-управляющий</h4><p>Координация плана, распределение задач и подготовка сводок. Пока это описание роли, а не действующий агент.</p><span class="tag">КООРДИНАЦИЯ</span></div></div>
+    <div class="card team-card"><div class="avatar">⌕</div><div><h4>КИО — контроль и независимая оценка</h4><p>Проверяет результаты и ищет несоответствия. Сейчас это концепция интерфейса.</p><span class="tag">НЕЗАВИСИМАЯ ПРОВЕРКА</span></div></div>
+    <div class="card team-card"><div class="avatar">₽</div><div><h4>Отдел поиска заработка</h4><p>Поиск легальных способов заработка без стартового бюджета и оценка рисков.</p><span class="tag">ИССЛЕДОВАНИЕ</span></div></div>
+    <div class="card team-card"><div class="avatar">⚙</div><div><h4>Инженерная служба</h4><p>Поддержка интерфейса, тестирование и исправление ошибок.</p><span class="tag">ТЕХНИЧЕСКОЕ ОБЕСПЕЧЕНИЕ</span></div></div>
+  </div>
+  <div class="notice">Владелец принимает окончательные решения. Никаких финансовых действий без отдельного разрешения.</div>
+</section>
+
+<section class="page" id="page-reports">
+  <div class="section-head"><h3>Отчёты</h3><span class="subtle">Состояние прототипа</span></div>
+  <div class="report-grid">
+    <div class="metric"><span>Интерфейс</span><strong style="color:var(--green)">Готов</strong><div class="bar"><i style="width:100%"></i></div></div>
+    <div class="metric"><span>Локальные задачи</span><strong style="color:var(--green)">Готовы</strong><div class="bar"><i style="width:100%"></i></div></div>
+    <div class="metric"><span>Сервер и аккаунты</span><strong>Не подключены</strong><div class="bar"><i style="width:0"></i></div></div>
+    <div class="metric"><span>ИИ-автоматизация</span><strong>Не подключена</strong><div class="bar"><i style="width:0"></i></div></div>
+  </div>
+  <div class="section-head"><h3>Последняя проверка</h3></div>
+  <div class="card"><div class="task-title">Управление задачами</div><div class="task-meta">Добавление, редактирование, сроки, ответственные, приоритеты и статусы.</div><span class="tag">НОВАЯ ВЕРСИЯ</span></div>
+  <div class="notice">Показатели демонстрационные и не означают, что запущены реальные автономные агенты.</div>
+</section>
+
+<section class="page" id="page-engineering">
+  <div class="section-head"><h3>Инженерная служба</h3><span class="subtle">Контроль качества</span></div>
+  <div class="list">
+    <div class="card"><div class="task-title">1. Сохранение задач</div><div class="task-meta">Локальное хранилище браузера. Серверная синхронизация отсутствует.</div><span class="tag">ЛОКАЛЬНО</span></div>
+    <div class="card"><div class="task-title">2. Проверка интерфейса</div><div class="task-meta">Навигация, мобильная вёрстка, создание и редактирование задач.</div><span class="tag">БАЗОВЫЙ УРОВЕНЬ</span></div>
+    <div class="card"><div class="task-title">3. Следующий этап</div><div class="task-meta">Проектирование облачного хранения и автоматизации.</div><span class="tag">ЗАПЛАНИРОВАНО</span></div>
+  </div>
+  <div class="section-head"><h3>Правила безопасности</h3></div>
+  <div class="card">Бюджет: <strong>0 ₽</strong><br>Платные API: запрещены без разрешения.<br>Пароли и ключи: не размещать в коде.<br>Внешние и финансовые действия: только с разрешения владельца.</div>
+</section>
+</main>
+<div class="footer">АТЛАС v0.4 · DEMO BUILD · Не является действующей автономной AI-системой</div>
 </div>
-<nav class="bottom-nav" aria-label="Навигация"><button class="nav-btn active" data-go="home"><span>⌂</span>Главная</button><button class="nav-btn" data-go="tasks"><span>☷</span>Задачи</button><button class="nav-btn" data-go="team"><span>⌘</span>Команда</button><button class="nav-btn" data-go="reports"><span>▥</span>Отчёты</button><button class="nav-btn" data-go="engineering"><span>⚙</span>Инженерия</button></nav>
+
+<nav class="bottom-nav" aria-label="Навигация">
+  <button class="nav-btn active" data-go="home"><span>⌂</span>Главная</button>
+  <button class="nav-btn" data-go="tasks"><span>☷</span>Задачи</button>
+  <button class="nav-btn" data-go="team"><span>⌘</span>Команда</button>
+  <button class="nav-btn" data-go="reports"><span>▥</span>Отчёты</button>
+  <button class="nav-btn" data-go="engineering"><span>⚙</span>Инженерия</button>
+</nav>
+
 <script>
 (()=>{'use strict';
 const KEY='atlas_demo_tasks_v03';
-const seed=[{id:1,title:'Подготовить сайт к бесплатной публикации',priority:'Высокий приоритет',done:false},{id:2,title:'Проверить навигацию и мобильную вёрстку',priority:'Обычный приоритет',done:false},{id:3,title:'Продумать надёжное хранение данных',priority:'Обычный приоритет',done:false}];
-let tasks;try{const saved=localStorage.getItem(KEY);tasks=saved?JSON.parse(saved):seed;if(!Array.isArray(tasks))tasks=seed;}catch(_){tasks=seed;}
-const $=id=>document.getElementById(id);const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(tasks));}catch(_){}}
-function renderTasks(id,homeOnly){const el=$(id),list=homeOnly?tasks.filter(t=>!t.done).slice(0,3):tasks;if(!list.length){el.innerHTML='<div class="empty">Пока задач нет.<br>Добавь первую выше.</div>';return;}el.innerHTML=list.map(t=>`<div class="card task ${t.done?'done':''}"><input type="checkbox" data-toggle="${t.id}" ${t.done?'checked':''} aria-label="Отметить выполнение"><div class="task-body"><div class="task-title">${safe(t.title)}</div><div class="task-meta">${safe(t.priority)} · ${t.done?'Выполнено':'В работе'}</div></div><button class="delete" data-delete="${t.id}" aria-label="Удалить задачу">×</button></div>`).join('');}
-function render(){renderTasks('all-tasks',false);renderTasks('home-tasks',true);$('m-active').textContent=tasks.filter(t=>!t.done).length;$('m-done').textContent=tasks.filter(t=>t.done).length;$('task-count').textContent=tasks.length+' всего';}
-const pages=['home','tasks','team','reports','engineering'];function go(page){if(!pages.includes(page))return;document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.go===page));window.scrollTo({top:0,behavior:'smooth'});}
-document.addEventListener('click',e=>{const nav=e.target.closest('[data-go]');if(nav){go(nav.dataset.go);return;}const del=e.target.closest('[data-delete]');if(del){tasks=tasks.filter(t=>t.id!==Number(del.dataset.delete));persist();render();}});
-document.addEventListener('change',e=>{if(!e.target.matches('[data-toggle]'))return;const task=tasks.find(t=>t.id===Number(e.target.dataset.toggle));if(task)task.done=e.target.checked;persist();render();});
-$('task-form').addEventListener('submit',e=>{e.preventDefault();const input=$('task-input'),title=input.value.trim();if(!title)return;tasks.unshift({id:Date.now(),title,priority:$('task-priority').value,done:false});persist();input.value='';render();});
-let sx=0,sy=0,target=null;document.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;target=e.target;},{passive:true});document.addEventListener('touchend',e=>{if(!sx||!target)return;const interactive=target.closest('input,select,textarea,button,a');const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(!interactive&&Math.abs(dx)>110&&Math.abs(dy)<65){const current=pages.findIndex(p=>$('page-'+p).classList.contains('active'));const next=Math.max(0,Math.min(pages.length-1,current+(dx<0?1:-1)));if(next!==current)go(pages[next]);}sx=0;sy=0;target=null;},{passive:true});
-render();})();
+const seed=[
+{id:1,title:'Подготовить сайт к бесплатной публикации',notes:'',assignee:'',due:'',priority:'Высокий приоритет',status:'В работе',done:false},
+{id:2,title:'Проверить навигацию и мобильную вёрстку',notes:'',assignee:'',due:'',priority:'Обычный приоритет',status:'В работе',done:false},
+{id:3,title:'Продумать надёжное хранение данных',notes:'',assignee:'',due:'',priority:'Обычный приоритет',status:'Ожидает',done:false}
+];
+let tasks;
+try{
+ const s=localStorage.getItem(KEY);
+ tasks=s?JSON.parse(s):seed;
+ if(!Array.isArray(tasks))tasks=seed;
+ tasks=tasks.map(t=>({...t,notes:t.notes||'',assignee:t.assignee||'',due:t.due||'',priority:t.priority||'Обычный приоритет',status:t.done?'Выполнено':(t.status||'В работе'),done:!!t.done||t.status==='Выполнено'}));
+}catch(e){tasks=seed}
+const $=id=>document.getElementById(id);
+const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function persist(){
+ try{localStorage.setItem(KEY,JSON.stringify(tasks))}
+ catch(e){alert('Не удалось сохранить данные в браузере. Проверь свободное место и настройки приватности.')}
+}
+function dateLabel(s){if(!s)return '';const p=s.split('-');return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:s}
+function taskCard(t){
+ const overdue=t.due&&t.due<new Date().toISOString().slice(0,10)&&!t.done;
+ const meta=[t.priority,t.status,t.assignee?'Ответственный: '+t.assignee:'',t.due?'Срок: '+dateLabel(t.due):'',overdue?'ПРОСРОЧЕНО':''].filter(Boolean).map(safe).join(' · ');
+ return `<div class="card task ${t.done?'done':''}">
+ <input type="checkbox" data-toggle="${t.id}" ${t.done?'checked':''} aria-label="Отметить выполнение">
+ <div class="task-body"><div class="task-title">${safe(t.title)}</div>${t.notes?`<div class="task-meta">${safe(t.notes)}</div>`:''}<div class="task-meta">${meta}</div></div>
+ <div class="task-buttons"><button class="edit" data-edit="${t.id}" aria-label="Редактировать задачу">Изм.</button><button class="delete" data-delete="${t.id}" aria-label="Удалить задачу">×</button></div>
+ </div>`;
+}
+function renderTasks(target,limit){
+ const el=$(target),list=limit?tasks.filter(t=>!t.done).slice(0,3):tasks;
+ if(!list.length){el.innerHTML='<div class="empty">Пока задач нет. Добавь первую выше.</div>';return}
+ el.innerHTML=list.map(taskCard).join('');
+}
+function render(){
+ renderTasks('all-tasks',false);renderTasks('home-tasks',true);
+ $('m-active').textContent=tasks.filter(t=>!t.done).length;
+ $('m-done').textContent=tasks.filter(t=>t.done).length;
+ $('task-count').textContent=tasks.length+' всего';
+}
+function go(page){
+ document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));
+ document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.go===page));
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetForm(){
+ $('task-form').reset();$('task-id').value='';
+ $('save-task').textContent='Добавить задачу +';$('cancel-edit').hidden=true;
+}
+function editTask(id){
+ const t=tasks.find(x=>x.id===id);if(!t)return;
+ $('task-id').value=String(t.id);$('task-input').value=t.title;
+ $('task-notes').value=t.notes||'';$('task-assignee').value=t.assignee||'';
+ $('task-due').value=t.due||'';$('task-priority').value=t.priority||'Обычный приоритет';
+ $('task-status').value=t.done?'Выполнено':(t.status||'В работе');
+ $('save-task').textContent='Сохранить изменения';$('cancel-edit').hidden=false;
+ go('tasks');$('task-input').focus({preventScroll:true});window.scrollTo({top:0,behavior:'smooth'});
+}
+document.addEventListener('click',e=>{
+ const n=e.target.closest('[data-go]');
+ if(n){go(n.dataset.go);return}
+ const edit=e.target.closest('[data-edit]');
+ if(edit){editTask(Number(edit.dataset.edit));return}
+ const d=e.target.closest('[data-delete]');
+ if(d&&confirm('Удалить эту задачу?')){
+  const id=Number(d.dataset.delete);tasks=tasks.filter(t=>t.id!==id);
+  persist();render();if(Number($('task-id').value)===id)resetForm();
+ }
+});
+document.addEventListener('change',e=>{
+ if(e.target.matches('[data-toggle]')){
+  const t=tasks.find(x=>x.id===Number(e.target.dataset.toggle));
+  if(t){t.done=e.target.checked;t.status=t.done?'Выполнено':(t.status==='Выполнено'?'В работе':t.status);persist();render()}
+ }
+});
+$('task-form').addEventListener('submit',e=>{
+ e.preventDefault();
+ const title=$('task-input').value.trim();if(!title)return;
+ const id=$('task-id').value,status=$('task-status').value;
+ const data={title,notes:$('task-notes').value.trim(),assignee:$('task-assignee').value.trim(),due:$('task-due').value,priority:$('task-priority').value,status,done:status==='Выполнено'};
+ if(id){const t=tasks.find(x=>x.id===Number(id));if(t)Object.assign(t,data)}
+ else tasks.unshift({id:Date.now(),...data});
+ persist();resetForm();render();
+});
+$('cancel-edit').addEventListener('click',resetForm);
+let sx=0,sy=0;
+document.addEventListener('touchstart',e=>{if(e.touches.length===1){sx=e.touches[0].clientX;sy=e.touches[0].clientY}},{passive:true});
+document.addEventListener('touchend',e=>{
+ if(!sx)return;
+ const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+ if(Math.abs(dx)>100&&Math.abs(dy)<70){
+  const p=['home','tasks','team','reports','engineering'];
+  const cur=p.findIndex(x=>$('page-'+x).classList.contains('active'));
+  const next=Math.max(0,Math.min(p.length-1,cur+(dx<0?1:-1)));
+  if(next!==cur)go(p[next]);
+ }
+ sx=0;sy=0;
+},{passive:true});
+render();
+})();
 </script>
 </body>
 </html>
