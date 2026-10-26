@@ -1,374 +1,1156 @@
 
-<div id="atlas-login" style="display:none;max-width:420px;margin:60px auto;padding:24px;border:1px solid #ccc;border-radius:16px;font-family:Arial,sans-serif">
-  <h2>Вход в АТЛАС</h2>
-  <p>Введи пароль, чтобы продолжить.</p>
-  <form id="atlas-login-form">
-    <input id="atlas-password" type="password" autocomplete="current-password" required placeholder="Пароль" style="box-sizing:border-box;width:100%;padding:12px;margin:8px 0">
-    <button type="submit" style="padding:12px 18px">Войти</button>
-    <p id="atlas-login-error" role="alert"></p>
-  </form>
-</div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0e14">
+  <title>АТЛАС — управление задачами</title>
 
-<script>
-(async function () {
-  const login = document.getElementById("atlas-login");
-  const form = document.getElementById("atlas-login-form");
-  const error = document.getElementById("atlas-login-error");
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0e14;
+      --panel: #121722;
+      --panel2: #171e2b;
+      --line: #283246;
+      --text: #f2f5fb;
+      --muted: #96a3b8;
+      --accent: #8b9dff;
+      --accent2: #6679ee;
+      --green: #61d6a5;
+      --yellow: #f4c86a;
+      --red: #ff7886;
+      --radius: 18px;
+    }
 
-  async function checkSession() {
-    const response = await fetch("/api/session", {
-      credentials: "same-origin",
-      cache: "no-store"
-    });
-    const data = await response.json();
-    login.style.display = data.authenticated ? "none" : "block";
-    return data.authenticated;
-  }
+    * { box-sizing: border-box; }
 
-  form.addEventListener("submit", async function (event) {
-    event.preventDefault();
-    error.textContent = "";
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { opacity: .55; cursor: wait; }
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+
+    .wrap { max-width: 1120px; margin: auto; padding: 18px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 23px;
+      font-weight: 850;
+      letter-spacing: 2px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      color: white;
+      background: linear-gradient(135deg, #8c9dff, #6356cc);
+      box-shadow: 0 7px 25px #6679ee33;
+    }
+
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 11px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel2);
+      color: var(--text);
+      padding: 10px 14px;
+      transition: .15s ease;
+    }
+
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: var(--accent2); border-color: var(--accent2); color: white; }
+    .btn.danger { color: var(--red); }
+    .btn.small-btn { padding: 7px 10px; font-size: 12px; }
+
+    .nav {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 22px;
+      scrollbar-width: none;
+    }
+
+    .nav::-webkit-scrollbar { display: none; }
+
+    .nav-btn {
+      flex: 0 0 auto;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      padding: 11px 15px;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .nav-btn.active {
+      background: #1a2133;
+      border-color: #354366;
+      color: white;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-title {
+      margin: 0 0 7px;
+      font-size: clamp(24px, 5vw, 32px);
+      letter-spacing: -.8px;
+    }
+
+    .page-subtitle { color: var(--muted); margin: 0 0 22px; line-height: 1.5; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      grid-column: span 12;
+      min-width: 0;
+      padding: 19px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .card h2, .card h3 { margin: 0 0 13px; }
+    .card p { line-height: 1.55; }
+
+    .metric { font-size: 32px; font-weight: 800; margin: 10px 0 5px; }
+    .metric-label { color: var(--muted); font-size: 13px; }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .section-head h2 { margin: 0; font-size: 19px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 13px; color: var(--muted); }
+
+    input, textarea, select {
+      width: 100%;
+      min-width: 0;
+      padding: 12px 13px;
+      color: var(--text);
+      background: #0d121c;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      outline: none;
+    }
+
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    textarea { min-height: 90px; resize: vertical; }
+
+    .form-actions { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 15px; }
+    .task-list { display: grid; gap: 11px; }
+
+    .task {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: #101520;
+      min-width: 0;
+    }
+
+    .task-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .task-title { font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+    .task-notes { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--muted); line-height: 1.5; }
+    .task-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+
+    .tag {
+      padding: 5px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .tag.green { color: var(--green); }
+    .tag.yellow { color: var(--yellow); }
+    .tag.red { color: var(--red); }
+    .task-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+
+    .notice {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .notice.error { color: var(--red); border-color: #66313e; }
+    .notice.success { color: var(--green); border-color: #285945; }
+    .empty { text-align: center; padding: 30px 12px; color: var(--muted); }
+
+    .login-screen {
+      width: min(420px, calc(100% - 30px));
+      margin: 12vh auto;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: 0 20px 70px #0005;
+    }
+
+    .login-screen h1 { margin: 0 0 9px; font-size: 26px; }
+    .login-screen p { color: var(--muted); line-height: 1.5; }
+    .login-screen .field { margin: 18px 0; }
+    .login-screen .btn { width: 100%; padding: 13px; }
+
+    .ai-launcher {
+      position: fixed;
+      right: 18px;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      z-index: 50;
+      border: 1px solid #9ba7ff66;
+      border-radius: 999px;
+      padding: 14px 18px;
+      color: white;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6f7ff0, #5145b6);
+      box-shadow: 0 8px 30px #0007;
+    }
+
+    .chat {
+      position: fixed;
+      right: 15px;
+      bottom: 78px;
+      z-index: 51;
+      width: min(410px, calc(100vw - 30px));
+      height: min(590px, calc(100dvh - 110px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #35405a;
+      border-radius: 20px;
+      background: #101520;
+      box-shadow: 0 20px 70px #0009;
+    }
+
+    .chat-head {
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bubble {
+      max-width: 92%;
+      align-self: flex-start;
+      padding: 11px 13px;
+      border-radius: 14px;
+      background: #1b2332;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .bubble.user { align-self: flex-end; background: #353d78; }
+    .bubble.error { border: 1px solid #66313e; }
+
+    .chat-form {
+      display: flex;
+      gap: 8px;
+      padding: 11px;
+      border-top: 1px solid var(--line);
+    }
+
+    .chat-form textarea { min-height: 44px; max-height: 100px; }
+    .chat-form .btn { align-self: flex-end; min-height: 44px; }
+
+    @media (max-width: 650px) {
+      .wrap { padding: 13px; }
+      .brand { font-size: 19px; }
+      .brand-mark { width: 37px; height: 37px; }
+      .pill { display: none; }
+      .card { padding: 15px; }
+      .span-6, .span-4 { grid-column: span 12; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .task-top { flex-direction: column; }
+      .ai-launcher { right: 13px; bottom: max(13px, env(safe-area-inset-bottom)); }
+      .chat { right: 10px; bottom: 72px; width: calc(100vw - 20px); }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Экран входа -->
+  <section id="login-screen" class="login-screen hidden">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <span>АТЛАС</span>
+    </div>
+    <h1 style="margin-top:25px">Вход в систему</h1>
+    <p>Введи пароль для доступа к рабочему пространству.</p>
+
+    <form id="login-form">
+      <div class="field">
+        <label for="login-password">Пароль</label>
+        <input id="login-password" type="password"
+          autocomplete="current-password" required>
+      </div>
+      <button class="btn primary" id="login-button" type="submit">Войти</button>
+      <div id="login-message" class="notice hidden" style="margin-top:12px" role="alert"></div>
+    </form>
+  </section>
+
+  <!-- Приложение скрыто до успешной проверки сессии -->
+  <div id="app" class="hidden">
+    <div class="wrap">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">A</div>
+          <span>АТЛАС</span>
+        </div>
+
+        <div class="top-actions">
+          <span class="pill"><span class="dot"></span><span id="connection-label">Проверка соединения</span></span>
+          <button id="refresh-button" class="btn" type="button">↻</button>
+          <button id="logout-button" class="btn danger" type="button">Выйти</button>
+        </div>
+      </header>
+
+      <nav class="nav" aria-label="Разделы">
+        <button class="nav-btn active" data-page="home">⌂ Обзор</button>
+        <button class="nav-btn" data-page="tasks">☷ Задачи</button>
+        <button class="nav-btn" data-page="team">♙ Команда</button>
+        <button class="nav-btn" data-page="reports">▥ Отчёты</button>
+        <button class="nav-btn" data-page="engineering">⚙ Система</button>
+      </nav>
+
+      <main>
+        <section id="page-home" class="page active">
+          <h1 class="page-title">Рабочее пространство</h1>
+          <p class="page-subtitle">Общая картина по задачам, статусам и срокам.</p>
+
+          <div class="grid">
+            <article class="card span-4">
+              <div class="metric-label">Всего задач</div>
+              <div id="metric-total" class="metric">—</div>
+              <div class="metric-label">Данные из D1</div>
+            </article>
+            <article class="card span-4">
+              <div class="metric-label">В работе</div>
+              <div id="metric-progress" class="metric">—</div>
+              <div class="metric-label">Активные задачи</div>
+            </article>
+            <article class="card span-4">
+              <div class="metric-label">Выполнено</div>
+              <div id="metric-done" class="metric">—</div>
+              <div class="metric-label">Завершённые задачи</div>
+            </article>
+            <article class="card">
+              <div class="section-head">
+                <h2>Последние задачи</h2>
+                <button class="btn small-btn" data-go="tasks" type="button">Все задачи →</button>
+              </div>
+              <div id="home-task-list" class="task-list"></div>
+            </article>
+            <article class="card">
+              <h2>Состояние системы</h2>
+              <div id="home-system-status" class="notice">Проверяем соединение…</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="page-tasks" class="page">
+          <h1 class="page-title">Задачи</h1>
+          <p class="page-subtitle">Создание, редактирование и контроль задач, сохранённых на сервере.</p>
+
+          <div class="grid">
+            <article class="card">
+              <div class="section-head">
+                <h2 id="task-form-heading">Новая задача</h2>
+                <span class="muted small">Сохранение в D1</span>
+              </div>
+
+              <form id="task-form">
+                <input type="hidden" id="task-id">
+                <div class="form-grid">
+                  <div class="field full">
+                    <label for="task-title">Название *</label>
+                    <input id="task-title" maxlength="500" required placeholder="Что нужно сделать?">
+                  </div>
+
+                  <div class="field">
+                    <label for="task-assignee">Исполнитель</label>
+                    <input id="task-assignee" maxlength="200" placeholder="Имя или подразделение">
+                  </div>
+
+                  <div class="field">
+                    <label for="task-due">Срок</label>
+                    <input id="task-due" type="date">
+                  </div>
+
+                  <div class="field">
+                    <label for="task-priority">Приоритет</label>
+                    <select id="task-priority">
+                      <option value="Обычный">Обычный</option>
+                      <option value="Высокий приоритет">Высокий приоритет</option>
+                      <option value="Низкий">Низкий</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label for="task-status">Статус</label>
+                    <select id="task-status">
+                      <option value="Новая">Новая</option>
+                      <option value="В работе">В работе</option>
+                      <option value="Выполнена">Выполнена</option>
+                      <option value="Ожидает">Ожидает</option>
+                      <option value="Заблокирована">Заблокирована</option>
+                    </select>
+                  </div>
+
+                  <div class="field full">
+                    <label for="task-notes">Описание</label>
+                    <textarea id="task-notes" maxlength="10000" placeholder="Дополнительная информация"></textarea>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button id="save-task-button" class="btn primary" type="submit">Сохранить задачу</button>
+                  <button id="cancel-edit-button" class="btn hidden" type="button">Отмена</button>
+                </div>
+              </form>
+              <div id="task-form-message" class="notice hidden" style="margin-top:12px" role="status"></div>
+            </article>
+
+            <article class="card">
+              <div class="section-head">
+                <h2>Список задач</h2>
+                <button id="tasks-reload-button" class="btn small-btn" type="button">Обновить</button>
+              </div>
+
+              <div class="form-grid" style="margin-bottom:14px">
+                <div class="field">
+                  <label for="task-search">Поиск</label>
+                  <input id="task-search" placeholder="Название, исполнитель…">
+                </div>
+                <div class="field">
+                  <label for="task-filter-status">Статус</label>
+                  <select id="task-filter-status">
+                    <option value="">Все статусы</option>
+                    <option value="Новая">Новая</option>
+                    <option value="В работе">В работе</option>
+                    <option value="Ожидает">Ожидает</option>
+                    <option value="Заблокирована">Заблокирована</option>
+                    <option value="Выполнена">Выполнена</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="task-list-message" class="notice hidden" style="margin-bottom:12px"></div>
+              <div id="task-list" class="task-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="page-team" class="page">
+          <h1 class="page-title">Команда</h1>
+          <p class="page-subtitle">Сводка по исполнителям на основе задач в базе.</p>
+          <div class="grid">
+            <article class="card">
+              <h2>Распределение задач</h2>
+              <div id="team-list" class="task-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="page-reports" class="page">
+          <h1 class="page-title">Отчёты</h1>
+          <p class="page-subtitle">Текущие показатели задач из D1.</p>
+          <div class="grid">
+            <article class="card">
+              <h2>Сводка</h2>
+              <div id="report-summary" class="task-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="page-engineering" class="page">
+          <h1 class="page-title">Система</h1>
+          <p class="page-subtitle">Состояние API, авторизации и соединения с сервером.</p>
+          <div class="grid">
+            <article class="card">
+              <h2>Диагностика</h2>
+              <div id="system-details" class="task-list"></div>
+              <div class="form-actions">
+                <button id="system-check-button" class="btn primary" type="button">Проверить соединение</button>
+              </div>
+            </article>
+            <article class="card">
+              <h2>Как работает АТЛАС</h2>
+              <p class="muted">Интерфейс обращается к API Worker. Задачи хранятся в Cloudflare D1. ИИ работает через OpenRouter. Изменения, предложенные ИИ, требуют отдельного подтверждения в чате.</p>
+              <p class="muted">Не передавай пароль от системы в сообщения ИИ.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <button id="ai-launcher" class="ai-launcher" type="button">✦ Спросить АТЛАС</button>
+
+    <section id="ai-chat" class="chat hidden" aria-label="ИИ-чат">
+      <div class="chat-head">
+        <div>
+          <strong>✦ ИИ-помощник</strong>
+          <div class="muted small">АТЛАС · OpenRouter</div>
+        </div>
+        <button id="ai-close" class="btn small-btn" type="button" aria-label="Закрыть чат">✕</button>
+      </div>
+
+      <div id="ai-messages" class="chat-messages" aria-live="polite">
+        <div class="bubble">Привет! Могу ответить на вопросы по задачам или подготовить изменение. Перед записью в базу я покажу, что именно изменится.</div>
+      </div>
+
+      <form id="ai-form" class="chat-form">
+        <textarea id="ai-input" rows="2" maxlength="12000" placeholder="Напиши сообщение…" required></textarea>
+        <button id="ai-send" class="btn primary" type="submit">➤</button>
+      </form>
+    </section>
+  </div>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const API = "/api";
+    const $ = id => document.getElementById(id);
+
+    let tasks = [];
+    let currentPage = "home";
+    let authenticated = false;
+    let loadingTasks = false;
+    let sendingAI = false;
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function setNotice(id, message, type = "") {
+      const el = $(id);
+      el.textContent = message || "";
+      el.className = "notice" + (type ? " " + type : "") + (message ? "" : " hidden");
+    }
+
+    function setConnection(connected, text) {
+      $("connection-label").textContent = text || (connected ? "Сервер подключён" : "Нет соединения");
+      $("home-system-status").textContent = text || (connected
+        ? "Соединение с API работает. Задачи загружаются с сервера."
+        : "Нет соединения с API. Проверь Worker и настройки D1.");
+      $("home-system-status").className = "notice " + (connected ? "success" : "error");
+    }
+
+    async function api(path, options = {}) {
+      const headers = new Headers(options.headers || {});
+      if (options.body && !headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json");
+      }
+
+      let response;
+      try {
+        response = await fetch(API + path, {
+          ...options,
+          headers,
+          credentials: "same-origin",
+          cache: "no-store"
+        });
+      } catch {
+        throw new Error("Не удалось связаться с сервером. Проверь интернет и адрес сайта.");
+      }
+
+      let data = null;
+      const type = response.headers.get("content-type") || "";
+      if (type.includes("application/json")) {
+        data = await response.json().catch(() => null);
+      }
+
+      if (response.status === 401) {
+        showLogin("Сессия завершена. Войди снова.");
+        throw new Error("Требуется повторный вход.");
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.error || data?.answer || ("Ошибка HTTP " + response.status));
+      }
+
+      return data;
+    }
+
+    async function checkSession() {
+      const response = await fetch(API + "/session", {
+        method: "GET",
         credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          password: document.getElementById("atlas-password").value
-        })
+        cache: "no-store"
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
+      authenticated = response.ok && data.authenticated === true;
 
-      if (!response.ok || !data.authenticated) {
-        error.textContent = data.error || "Не удалось войти.";
+      if (authenticated) {
+        showApp();
+        return true;
+      }
+
+      showLogin();
+      return false;
+    }
+
+    function showLogin(message = "") {
+      authenticated = false;
+      $("app").classList.add("hidden");
+      $("login-screen").classList.remove("hidden");
+      $("login-password").value = "";
+      setNotice("login-message", message, message ? "error" : "");
+    }
+
+    function showApp() {
+      authenticated = true;
+      $("login-screen").classList.add("hidden");
+      $("app").classList.remove("hidden");
+    }
+
+    $("login-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = $("login-button");
+      button.disabled = true;
+      button.textContent = "Входим…";
+      setNotice("login-message", "");
+
+      try {
+        const data = await api("/login", {
+          method: "POST",
+          body: JSON.stringify({ password: $("login-password").value })
+        });
+
+        if (!data?.authenticated) throw new Error(data?.error || "Не удалось войти.");
+
+        $("login-password").value = "";
+        showApp();
+        await loadTasks();
+        navigate("home");
+      } catch (error) {
+        if (authenticated) {
+          setNotice("login-message", error.message, "error");
+        } else {
+          setNotice("login-message", error.message, "error");
+        }
+      } finally {
+        button.disabled = false;
+        button.textContent = "Войти";
+      }
+    });
+
+    $("logout-button").addEventListener("click", async () => {
+      if (!confirm("Выйти из АТЛАС?")) return;
+
+      try {
+        await api("/logout", { method: "POST", body: "{}" });
+      } catch (error) {
+        console.error("Выход:", error.message);
+      }
+
+      tasks = [];
+      $("ai-chat").classList.add("hidden");
+      $("ai-messages").replaceChildren();
+      showLogin("Ты вышел из системы.");
+    });
+
+    function navigate(page) {
+      currentPage = page;
+      document.querySelectorAll(".nav-btn").forEach(button => {
+        button.classList.toggle("active", button.dataset.page === page);
+      });
+      document.querySelectorAll(".page").forEach(section => {
+        section.classList.toggle("active", section.id === "page-" + page);
+      });
+      if (page === "team" || page === "reports" || page === "home") renderAll();
+    }
+
+    document.querySelectorAll(".nav-btn").forEach(button => {
+      button.addEventListener("click", () => navigate(button.dataset.page));
+    });
+
+    document.querySelectorAll("[data-go]").forEach(button => {
+      button.addEventListener("click", () => navigate(button.dataset.go));
+    });
+
+    function normalizeTask(task) {
+      const status = task.status || "Новая";
+      return {
+        id: String(task.id ?? ""),
+        title: String(task.title ?? ""),
+        assignee: String(task.assignee ?? ""),
+        due_date: String(task.due_date ?? task.due ?? ""),
+        priority: String(task.priority ?? "Обычный"),
+        status,
+        notes: String(task.notes ?? ""),
+        created_at: task.created_at ?? "",
+        updated_at: task.updated_at ?? ""
+      };
+    }
+
+    async function loadTasks() {
+      if (!authenticated || loadingTasks) return;
+      loadingTasks = true;
+      $("tasks-reload-button").disabled = true;
+      $("refresh-button").disabled = true;
+
+      try {
+        const data = await api("/tasks");
+        // Поддерживаем массив и объектный формат API.
+        const rows = Array.isArray(data) ? data : data?.tasks;
+        if (!Array.isArray(rows)) throw new Error("Сервер вернул неизвестный формат задач.");
+
+        tasks = rows.map(normalizeTask);
+        setConnection(true, "Сервер · D1");
+        setNotice("task-list-message", "");
+        renderAll();
+      } catch (error) {
+        setConnection(false, error.message);
+        setNotice("task-list-message", error.message, "error");
+      } finally {
+        loadingTasks = false;
+        $("tasks-reload-button").disabled = false;
+        $("refresh-button").disabled = false;
+      }
+    }
+
+    function statusClass(status) {
+      if (status === "Выполнена") return "green";
+      if (status === "Заблокирована") return "red";
+      if (status === "Ожидает") return "yellow";
+      return "";
+    }
+
+    function priorityClass(priority) {
+      if (priority === "Высокий приоритет" || priority === "Высокий") return "red";
+      if (priority === "Низкий") return "green";
+      return "";
+    }
+
+    function taskCard(task, compact = false) {
+      const due = task.due_date ? `Срок: ${escapeHTML(task.due_date)}` : "Срок не указан";
+      const assignee = task.assignee ? `Исполнитель: ${escapeHTML(task.assignee)}` : "Исполнитель не указан";
+      return `
+        <article class="task">
+          <div class="task-top">
+            <div class="task-title">${escapeHTML(task.title || "Без названия")}</div>
+            <span class="tag ${statusClass(task.status)}">${escapeHTML(task.status)}</span>
+          </div>
+          ${task.notes ? `<p class="task-notes">${escapeHTML(task.notes)}</p>` : ""}
+          <div class="task-meta">
+            <span class="tag ${priorityClass(task.priority)}">${escapeHTML(task.priority)}</span>
+            <span class="tag">${assignee}</span>
+            <span class="tag">${due}</span>
+          </div>
+          ${compact ? "" : `
+            <div class="task-actions">
+              <button class="btn small-btn" type="button" data-edit="${escapeHTML(task.id)}">Изменить</button>
+              <button class="btn small-btn" type="button" data-toggle="${escapeHTML(task.id)}">
+                ${task.status === "Выполнена" ? "Вернуть в работу" : "Отметить выполненной"}
+              </button>
+              <button class="btn small-btn danger" type="button" data-delete="${escapeHTML(task.id)}">Удалить</button>
+            </div>
+          `}
+        </article>`;
+    }
+
+    function renderTaskList() {
+      const query = $("task-search").value.trim().toLocaleLowerCase("ru");
+      const status = $("task-filter-status").value;
+
+      const filtered = tasks.filter(task => {
+        const searchable = [task.title, task.notes, task.assignee].join(" ").toLocaleLowerCase("ru");
+        return (!query || searchable.includes(query)) && (!status || task.status === status);
+      });
+
+      $("task-list").innerHTML = filtered.length
+        ? filtered.map(task => taskCard(task)).join("")
+        : '<div class="empty">Задач по заданным условиям нет.</div>';
+    }
+
+    function renderHome() {
+      $("metric-total").textContent = tasks.length;
+      $("metric-progress").textContent = tasks.filter(task => task.status === "В работе").length;
+      $("metric-done").textContent = tasks.filter(task => task.status === "Выполнена").length;
+
+      const recent = tasks.slice(0, 5);
+      $("home-task-list").innerHTML = recent.length
+        ? recent.map(task => taskCard(task, true)).join("")
+        : '<div class="empty">В базе пока нет задач.</div>';
+    }
+
+    function renderTeam() {
+      const people = new Map();
+      for (const task of tasks) {
+        const name = task.assignee || "Не назначен";
+        if (!people.has(name)) people.set(name, { total: 0, active: 0, done: 0 });
+        const item = people.get(name);
+        item.total++;
+        if (task.status === "Выполнена") item.done++;
+        else item.active++;
+      }
+
+      const rows = [...people.entries()].sort((a, b) => b[1].total - a[1].total);
+      $("team-list").innerHTML = rows.length ? rows.map(([name, info]) => `
+        <div class="task">
+          <div class="task-title">${escapeHTML(name)}</div>
+          <div class="task-meta">
+            <span class="tag">Всего: ${info.total}</span>
+            <span class="tag yellow">Активных: ${info.active}</span>
+            <span class="tag green">Выполнено: ${info.done}</span>
+          </div>
+        </div>
+      `).join("") : '<div class="empty">Данные появятся после добавления задач и исполнителей.</div>';
+    }
+
+    function renderReports() {
+      const total = tasks.length;
+      const done = tasks.filter(task => task.status === "Выполнена").length;
+      const blocked = tasks.filter(task => task.status === "Заблокирована").length;
+      const waiting = tasks.filter(task => task.status === "Ожидает").length;
+      const overdue = tasks.filter(task =>
+        task.due_date &&
+        task.due_date < new Date().toISOString().slice(0, 10) &&
+        task.status !== "Выполнена"
+      ).length;
+
+      const rows = [
+        ["Всего задач", total],
+        ["Выполнено", done],
+        ["В работе", tasks.filter(t => t.status === "В работе").length],
+        ["Ожидает", waiting],
+        ["Заблокировано", blocked],
+        ["Просрочено", overdue],
+        ["Выполнение", total ? Math.round(done / total * 100) + "%" : "0%"]
+      ];
+
+      $("report-summary").innerHTML = rows.map(([name, value]) => `
+        <div class="task-top task">
+          <span>${escapeHTML(name)}</span>
+          <strong>${escapeHTML(value)}</strong>
+        </div>
+      `).join("");
+    }
+
+    function renderSystem() {
+      $("system-details").innerHTML = `
+        <div class="task-top task"><span>Авторизация</span><strong>${authenticated ? "Активна" : "Нет сессии"}</strong></div>
+        <div class="task-top task"><span>API Worker</span><strong>${authenticated ? "Доступен" : "Не проверен"}</strong></div>
+        <div class="task-top task"><span>Задачи в памяти интерфейса</span><strong>${tasks.length}</strong></div>
+        <div class="task-top task"><span>Источник данных</span><strong>D1 через Worker</strong></div>
+      `;
+    }
+
+    function renderAll() {
+      renderHome();
+      renderTaskList();
+      renderTeam();
+      renderReports();
+      renderSystem();
+    }
+
+    function resetTaskForm() {
+      $("task-form").reset();
+      $("task-id").value = "";
+      $("task-form-heading").textContent = "Новая задача";
+      $("save-task-button").textContent = "Сохранить задачу";
+      $("cancel-edit-button").classList.add("hidden");
+      $("task-priority").value = "Обычный";
+      $("task-status").value = "Новая";
+      setNotice("task-form-message", "");
+    }
+
+    function editTask(id) {
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+
+      $("task-id").value = task.id;
+      $("task-title").value = task.title;
+      $("task-assignee").value = task.assignee;
+      $("task-due").value = /^\d{4}-\d{2}-\d{2}$/.test(task.due_date) ? task.due_date : "";
+      $("task-priority").value = task.priority;
+      $("task-status").value = task.status;
+      $("task-notes").value = task.notes;
+      $("task-form-heading").textContent = "Редактирование задачи";
+      $("save-task-button").textContent = "Сохранить изменения";
+      $("cancel-edit-button").classList.remove("hidden");
+      $("task-title").focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    $("task-form").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const id = $("task-id").value;
+      const body = {
+        title: $("task-title").value.trim(),
+        assignee: $("task-assignee").value.trim(),
+        due_date: $("task-due").value,
+        priority: $("task-priority").value,
+        status: $("task-status").value,
+        notes: $("task-notes").value.trim()
+      };
+
+      if (!body.title) {
+        setNotice("task-form-message", "Название задачи обязательно.", "error");
         return;
       }
 
-      document.getElementById("atlas-password").value = "";
-      location.reload();
-    } catch {
-      error.textContent = "Ошибка соединения. Попробуй ещё раз.";
-    }
-  });
+      const button = $("save-task-button");
+      button.disabled = true;
 
-  try {
-    await checkSession();
-  } catch {
-    login.style.display = "block";
-    error.textContent = "Не удалось проверить сессию.";
-  }
-})();
-</script>
+      try {
+        const result = await api(id ? "/tasks/" + encodeURIComponent(id) : "/tasks", {
+          method: id ? "PUT" : "POST",
+          body: JSON.stringify(body)
+        });
 
-<!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#090d13">
-<title>АТЛАС — личная AI-организация</title>
-<style>
-:root{color-scheme:dark;--bg:#080b10;--panel:rgba(255,255,255,.065);--line:rgba(220,235,255,.13);--text:#f2f6fc;--muted:#91a0b4;--blue:#8bd8ff;--green:#9ce6c0;--r:22px}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at 50% -20%,#1c3449 0,transparent 45%),var(--bg);color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
-button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}
-.app{max-width:760px;margin:auto;min-height:100vh;padding:env(safe-area-inset-top) 16px calc(100px + env(safe-area-inset-bottom))}
-header{padding:22px 4px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{width:44px;height:44px;border-radius:15px;background:linear-gradient(145deg,#dff6ff,#61b8eb 55%,#326ca8);display:grid;place-items:center;color:#07111c;font-weight:900;font-size:20px}
-.eyebrow{color:var(--blue);font-size:11px;letter-spacing:.17em;font-weight:800}
-.brand h1{font-size:22px;margin:0;letter-spacing:.04em}
-.status{border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--green);font-size:11px;white-space:nowrap}
-.hero{padding:24px 22px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(140deg,rgba(134,210,255,.13),rgba(255,255,255,.035) 55%);box-shadow:0 18px 50px #0004}
-.hero h2{font-size:clamp(28px,7vw,42px);line-height:1.08;margin:12px 0;letter-spacing:-.04em}
-.hero p{color:var(--muted);margin:0}
-.pill{display:inline-block;font-size:12px;color:var(--blue);border:1px solid #8bd8ff42;border-radius:99px;padding:6px 10px}
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
-.metric,.card,.section{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:15px}
-.metric span{display:block;font-size:12px;color:var(--muted)}
-.metric strong{display:block;font-size:24px;margin-top:5px}
-.section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:25px 2px 12px}
-.section-head h3{font-size:17px;margin:0}
-.subtle{font-size:12px;color:var(--muted)}
-.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.action{display:flex;align-items:center;gap:12px;text-align:left;min-height:80px}
-.symbol{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#8bd8ff16;font-size:20px;flex-shrink:0}
-.action strong{display:block;font-size:14px}
-.action small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
-.card:active{transform:scale(.985)}
-.tasks{display:grid;gap:9px}
-.task{display:flex;gap:11px;align-items:flex-start}
-.task input[type=checkbox]{accent-color:#7ed5ff;width:19px;height:19px;margin-top:3px;flex-shrink:0}
-.task-body{flex:1;min-width:0}
-.task-title{font-weight:650;overflow-wrap:anywhere}
-.task.done .task-title{text-decoration:line-through;color:var(--muted)}
-.task-meta{font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
-.delete{border:0;background:transparent;color:var(--muted);font-size:20px;padding:0 4px}
-.empty{color:var(--muted);text-align:center;padding:22px 8px}
-.form{display:grid;gap:10px;margin-top:13px}
-.field{width:100%;border:1px solid var(--line);background:#05080d;color:var(--text);border-radius:13px;padding:12px 13px;outline:none;min-width:0}
-.primary,.secondary{border-radius:13px;padding:12px 15px;border:1px solid #8bd8ff4d;background:linear-gradient(135deg,#8bd8ff,#4c9bd4);color:#07111a;font-weight:750}
-.secondary{background:#ffffff12;color:var(--text);border-color:var(--line)}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.bottom-nav{position:fixed;z-index:5;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));width:min(720px,calc(100% - 24px));display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:7px;border:1px solid #d7eaff20;border-radius:23px;background:rgba(15,21,30,.92);box-shadow:0 12px 40px #0009;backdrop-filter:blur(22px)}
-.nav-btn{background:transparent;border:0;border-radius:15px;padding:8px 2px;color:var(--muted);font-size:10px;display:grid;justify-items:center;gap:4px}
-.nav-btn span{font-size:19px}.nav-btn.active{color:var(--blue);background:#8bd8ff14}
-.page{display:none}.page.active{display:block}
-.list{display:grid;gap:10px}
-.team-card{display:flex;gap:13px;align-items:flex-start}
-.avatar{width:43px;height:43px;border-radius:15px;background:#8bd8ff15;display:grid;place-items:center;font-size:20px;flex-shrink:0}
-.team-card h4{margin:0 0 3px}.team-card p{margin:0;color:var(--muted);font-size:13px}
-.tag{display:inline-block;font-size:10px;color:var(--blue);border:1px solid #8bd8ff35;border-radius:99px;padding:3px 7px;margin-top:8px}
-.notice{border-left:3px solid var(--blue);padding:10px 12px;background:#8bd8ff0b;border-radius:0 12px 12px 0;color:var(--muted);font-size:12px;margin-top:14px}
-.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.report-grid .metric strong{font-size:19px}
-.bar{height:7px;background:#ffffff12;border-radius:99px;overflow:hidden;margin-top:9px}
-.bar i{display:block;height:100%;width:28%;background:linear-gradient(90deg,#4d9ed6,#a6e6ff);border-radius:99px}
-.footer{text-align:center;color:#68788c;font-size:11px;margin:24px 0 8px}
-.task-buttons{display:flex;gap:5px;align-items:center}
-.edit{border:1px solid var(--line);background:#ffffff0b;border-radius:9px;padding:5px 8px;font-size:12px}
-.task-form-actions{display:flex;gap:8px}.task-form-actions button{flex:1}
-@media(max-width:380px){.form-grid{grid-template-columns:1fr}.metrics{gap:6px}.metric{padding:11px}.metric strong{font-size:20px}.nav-btn{font-size:9px}}
-@media(min-width:600px){.app{padding-left:24px;padding-right:24px}.hero{padding:32px}.actions{grid-template-columns:repeat(4,minmax(0,1fr))}.action{display:block}.action .symbol{margin-bottom:12px}.metric{padding:18px}}
-</style>
-</head>
-<body>
-<div class="app">
-<header>
-  <div class="brand"><div class="logo">A</div><div><div class="eyebrow">PERSONAL AI ORGANIZATION</div><h1>АТЛАС</h1></div></div>
-  <div class="status">● CONNECTING…</div>
-</header>
-<main>
-<section class="page active" id="page-home">
-<div class="hero"><span class="pill">✦ ПАНЕЛЬ УПРАВЛЕНИЯ</span><h2>Система под<br>твоим контролем.</h2><p>Единое пространство для задач, подразделений и проверки результатов. Решения остаются за владельцем.</p></div>
-<div class="metrics"><div class="metric"><span>Активные задачи</span><strong id="m-active">0</strong></div><div class="metric"><span>Выполнено</span><strong id="m-done">0</strong></div><div class="metric"><span>Подразделения</span><strong>4</strong></div></div>
-<div class="section-head"><h3>Быстрый доступ</h3><span class="subtle">Выбери раздел</span></div>
-<div class="actions">
-<button class="card action" data-go="tasks"><span class="symbol">☷</span><span><strong>Задачи</strong><small>План и выполнение</small></span></button>
-<button class="card action" data-go="team"><span class="symbol">⌘</span><span><strong>Команда</strong><small>Подразделения</small></span></button>
-<button class="card action" data-go="reports"><span class="symbol">▥</span><span><strong>Отчёты</strong><small>Показатели системы</small></span></button>
-<button class="card action" data-go="engineering"><span class="symbol">⚙</span><span><strong>Инженерная</strong><small>Контроль качества</small></span></button>
-</div>
-<div class="section-head"><h3>На ближайшее время</h3><button class="secondary" data-go="tasks">Все задачи →</button></div>
-<div id="home-tasks" class="tasks"></div>
-<div class="notice">Демонстрационный прототип. Реальные ИИ-агенты и внешние интеграции пока не подключены.</div>
-</section>
-<section class="page" id="page-tasks">
-<div class="section-head"><h3>Задачи</h3><span class="subtle">Серверный список</span></div>
-<div class="section">
-<p class="subtle" style="margin-top:0">Создавай и редактируй задачи, указывай ответственного, срок, приоритет и статус. Данные сохраняются в серверной базе АТЛАС.</p>
-<form class="form" id="task-form">
-<input type="hidden" id="task-id">
-<input class="field" id="task-input" maxlength="160" placeholder="Название задачи" required>
-<textarea class="field" id="task-notes" maxlength="1000" rows="2" placeholder="Описание или заметка (необязательно)"></textarea>
-<div class="form-grid"><input class="field" id="task-assignee" maxlength="80" placeholder="Ответственный"><input class="field" id="task-due" type="date" aria-label="Срок выполнения"></div>
-<div class="form-grid">
-<select class="field" id="task-priority"><option value="Обычный приоритет">Обычный приоритет</option><option value="Высокий приоритет">Высокий приоритет</option><option value="Низкий приоритет">Низкий приоритет</option></select>
-<select class="field" id="task-status"><option value="В работе">В работе</option><option value="Ожидает">Ожидает</option><option value="Заблокирована">Заблокирована</option><option value="Выполнено">Выполнено</option></select>
-</div>
-<div class="task-form-actions"><button class="primary" id="save-task" type="submit">Добавить задачу +</button><button class="secondary" id="cancel-edit" type="button" hidden>Отмена</button></div>
-</form>
-</div>
-<div class="section-head"><h3>Твой список</h3><span class="subtle" id="task-count"></span></div>
-<div id="all-tasks" class="tasks"></div>
-<div class="notice">Задачи загружаются через серверный API. Не вводи сюда секретные или чувствительные данные.</div>
-</section>
-<section class="page" id="page-team">
-<div class="section-head"><h3>Команда АТЛАС</h3><span class="subtle">Модель организации</span></div>
-<div class="list">
-<div class="card team-card"><div class="avatar">◈</div><div><h4>ИИ-управляющий</h4><p>Координация плана, распределение задач и подготовка сводок. Пока это описание роли, а не действующий агент.</p><span class="tag">КООРДИНАЦИЯ</span></div></div>
-<div class="card team-card"><div class="avatar">⌕</div><div><h4>КИО — контроль и независимая оценка</h4><p>Проверяет результаты и ищет несоответствия. Сейчас это концепция интерфейса.</p><span class="tag">НЕЗАВИСИМАЯ ПРОВЕРКА</span></div></div>
-<div class="card team-card"><div class="avatar">₽</div><div><h4>Отдел поиска заработка</h4><p>Поиск легальных способов заработка без стартового бюджета и оценка рисков.</p><span class="tag">ИССЛЕДОВАНИЕ</span></div></div>
-<div class="card team-card"><div class="avatar">⚙</div><div><h4>Инженерная служба</h4><p>Поддержка интерфейса, тестирование и исправление ошибок.</p><span class="tag">ТЕХНИЧЕСКОЕ ОБЕСПЕЧЕНИЕ</span></div></div>
-</div>
-<div class="notice">Владелец принимает окончательные решения. Финансовые действия — только с отдельного разрешения.</div>
-</section>
-<section class="page" id="page-reports">
-<div class="section-head"><h3>Отчёты</h3><span class="subtle">Состояние прототипа</span></div>
-<div class="report-grid">
-<div class="metric"><span>Интерфейс</span><strong style="color:var(--green)">Готов</strong><div class="bar"><i style="width:100%"></i></div></div>
-<div class="metric"><span>Серверное API</span><strong>Проверяется</strong><div class="bar"><i style="width:50%"></i></div></div>
-<div class="metric"><span>Хранение D1</span><strong>Подключается</strong><div class="bar"><i style="width:50%"></i></div></div>
-<div class="metric"><span>ИИ-автоматизация</span><strong>Не подключена</strong><div class="bar"><i style="width:0"></i></div></div>
-</div>
-<div class="section-head"><h3>Последняя проверка</h3></div>
-<div class="card"><div class="task-title">Управление задачами</div><div class="task-meta">Создание, редактирование, сроки, ответственные, приоритеты и статусы.</div><span class="tag">АТЛАС v0.5</span></div>
-<div class="notice">Показатели интерфейса не означают, что запущены реальные автономные агенты.</div>
-</section>
-<section class="page" id="page-engineering">
-<div class="section-head"><h3>Инженерная служба</h3><span class="subtle">Контроль качества</span></div>
-<div class="list">
-<div class="card"><div class="task-title">1. Серверное хранение</div><div class="task-meta">Задачи сохраняются через API и базу D1, если привязка Worker настроена правильно.</div><span class="tag">ПРОВЕРКА</span></div>
-<div class="card"><div class="task-title">2. Интерфейс</div><div class="task-meta">Навигация, мобильная вёрстка, создание и редактирование задач.</div><span class="tag">БАЗОВЫЙ УРОВЕНЬ</span></div>
-<div class="card"><div class="task-title">3. Следующий этап</div><div class="task-meta">Проверить серверную синхронизацию и развивать главную панель.</div><span class="tag">ЗАПЛАНИРОВАНО</span></div>
-</div>
-<div class="section-head"><h3>Правила безопасности</h3></div>
-<div class="card">Бюджет: <strong>0 ₽</strong><br>Платные API: запрещены без разрешения.<br>Пароли и ключи: не размещать в коде.<br>Внешние и финансовые действия: только с разрешения владельца.</div>
-</section>
-</main>
-<div class="footer">АТЛАС v0.5 · SERVER API BUILD · Не является действующей автономной AI-системой</div>
-</div>
-<nav class="bottom-nav" aria-label="Навигация">
-<button class="nav-btn active" data-go="home"><span>⌂</span>Главная</button>
-<button class="nav-btn" data-go="tasks"><span>☷</span>Задачи</button>
-<button class="nav-btn" data-go="team"><span>⌘</span>Команда</button>
-<button class="nav-btn" data-go="reports"><span>▥</span>Отчёты</button>
-<button class="nav-btn" data-go="engineering"><span>⚙</span>Инженерия</button>
-</nav>
-<script>
-(()=>{'use strict';
-const KEY='atlas_demo_tasks_v03';
-const API='/api/tasks';
-const seed=[
-{id:'local-1',title:'Подготовить сайт к бесплатной публикации',notes:'',assignee:'',due:'',priority:'Высокий приоритет',status:'В работе',done:false},
-{id:'local-2',title:'Проверить навигацию и мобильную вёрстку',notes:'',assignee:'',due:'',priority:'Обычный приоритет',status:'В работе',done:false},
-{id:'local-3',title:'Продумать надёжное хранение данных',notes:'',assignee:'',due:'',priority:'Обычный приоритет',status:'Ожидает',done:false}
-];
-let tasks=[],serverMode=false,busy=false;
-const $=id=>document.getElementById(id);
-const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function normalize(t){const status=t.status||'В работе';return{id:String(t.id),title:t.title||'',notes:t.notes||'',assignee:t.assignee||'',due:t.due||t.due_date||'',priority:t.priority||'Обычный приоритет',status,done:!!t.done||status==='Выполнено'}}
-function fromServer(t){return normalize({...t,due:t.due_date||'',done:t.status==='Выполнено'})}
-function localRead(){try{const raw=localStorage.getItem(KEY);const arr=raw?JSON.parse(raw):seed;return Array.isArray(arr)?arr.map(normalize):seed.map(normalize)}catch(e){return seed.map(normalize)}}
-function persistLocal(){try{localStorage.setItem(KEY,JSON.stringify(tasks))}catch(e){}}
-function setConnection(ok){serverMode=ok;const el=document.querySelector('.status');if(el){el.textContent=ok?'● SERVER · D1':'● LOCAL · OFFLINE';el.style.color=ok?'var(--green)':'var(--muted)'}const notice=document.querySelector('#page-tasks .notice');if(notice)notice.textContent=ok?'Задачи загружаются из облачной базы D1. Они доступны через этот сайт на других устройствах.':'Сервер временно недоступен: показываются локальные задачи на этом устройстве.'}
-async function api(path='',options={}){const r=await fetch(API+path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});let data;try{data=await r.json()}catch(e){data={error:'Ответ сервера не является JSON'}}if(!r.ok)throw new Error(data.error||('HTTP '+r.status));return data}
-async function loadTasks(){const local=localRead();try{let rows=await api();if(!Array.isArray(rows))throw new Error('Неожиданный ответ API');if(rows.length===0&&local.length){for(const t of local){await api('',{method:'POST',body:JSON.stringify({id:String(t.id),title:t.title,assignee:t.assignee,due_date:t.due,priority:t.priority,status:t.done?'Выполнено':t.status,notes:t.notes})})}rows=await api()}tasks=rows.map(fromServer);setConnection(true);persistLocal()}catch(e){tasks=local;setConnection(false);console.warn('Atlas API:',e.message)}render()}
-function dateLabel(s){if(!s)return '';const p=s.split('-');return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:s}
-function taskCard(t){const overdue=t.due&&t.due<new Date().toISOString().slice(0,10)&&!t.done;const meta=[t.priority,t.status,t.assignee?'Ответственный: '+t.assignee:'',t.due?'Срок: '+dateLabel(t.due):'',overdue?'ПРОСРОЧЕНО':''].filter(Boolean).map(safe).join(' · ');return `<div class="card task ${t.done?'done':''}"><input type="checkbox" data-toggle="${safe(t.id)}" ${t.done?'checked':''} aria-label="Отметить выполнение"><div class="task-body"><div class="task-title">${safe(t.title)}</div>${t.notes?`<div class="task-meta">${safe(t.notes)}</div>`:''}<div class="task-meta">${meta}</div></div><div class="task-buttons"><button class="edit" data-edit="${safe(t.id)}" aria-label="Редактировать задачу">Изм.</button><button class="delete" data-delete="${safe(t.id)}" aria-label="Удалить задачу">×</button></div></div>`}
-function renderTasks(target,limit){const el=$(target),list=limit?tasks.filter(t=>!t.done).slice(0,3):tasks;if(!list.length){el.innerHTML='<div class="empty">Пока задач нет. Добавь первую выше.</div>';return}el.innerHTML=list.map(taskCard).join('')}
-function render(){renderTasks('all-tasks',false);renderTasks('home-tasks',true);$('m-active').textContent=tasks.filter(t=>!t.done).length;$('m-done').textContent=tasks.filter(t=>t.done).length;$('task-count').textContent=tasks.length+' всего'}
-function go(page){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.go===page));window.scrollTo({top:0,behavior:'smooth'})}
-function resetForm(){$('task-form').reset();$('task-id').value='';$('save-task').textContent='Добавить задачу +';$('cancel-edit').hidden=true}
-function editTask(id){const t=tasks.find(x=>String(x.id)===String(id));if(!t)return;$('task-id').value=String(t.id);$('task-input').value=t.title;$('task-notes').value=t.notes||'';$('task-assignee').value=t.assignee||'';$('task-due').value=t.due||'';$('task-priority').value=t.priority||'Обычный приоритет';$('task-status').value=t.done?'Выполнено':(t.status||'В работе');$('save-task').textContent='Сохранить изменения';$('cancel-edit').hidden=false;go('tasks');$('task-input').focus({preventScroll:true});window.scrollTo({top:0,behavior:'smooth'})}
-async function saveTaskRemote(t,isEdit){if(!serverMode)throw new Error('Сервер не подключён. Проверь соединение и обнови страницу.');if(isEdit){await api('/'+encodeURIComponent(t.id),{method:'PUT',body:JSON.stringify({title:t.title,notes:t.notes,assignee:t.assignee,due_date:t.due,priority:t.priority,status:t.status})})}else{await api('',{method:'POST',body:JSON.stringify({title:t.title,notes:t.notes,assignee:t.assignee,due_date:t.due,priority:t.priority,status:t.status})})}const rows=await api();tasks=rows.map(fromServer);persistLocal();render()}
-document.addEventListener('click',async e=>{const n=e.target.closest('[data-go]');if(n){go(n.dataset.go);return}const edit=e.target.closest('[data-edit]');if(edit){editTask(edit.dataset.edit);return}const d=e.target.closest('[data-delete]');if(d){if(!confirm('Удалить эту задачу?'))return;try{if(serverMode){await api('/'+encodeURIComponent(d.dataset.delete),{method:'DELETE'});tasks=(await api()).map(fromServer)}else{tasks=tasks.filter(t=>String(t.id)!==String(d.dataset.delete))}persistLocal();render();if($('task-id').value===d.dataset.delete)resetForm()}catch(err){alert('Не удалось удалить задачу: '+err.message)}}});
-document.addEventListener('change',async e=>{if(e.target.matches('[data-toggle]')){const t=tasks.find(x=>String(x.id)===String(e.target.dataset.toggle));if(!t)return;const old={...t};t.done=e.target.checked;t.status=t.done?'Выполнено':(t.status==='Выполнено'?'В работе':t.status);try{if(serverMode){await api('/'+encodeURIComponent(t.id),{method:'PUT',body:JSON.stringify({title:t.title,notes:t.notes,assignee:t.assignee,due_date:t.due,priority:t.priority,status:t.status})});tasks=(await api()).map(fromServer)}persistLocal();render()}catch(err){Object.assign(t,old);render();alert('Не удалось обновить задачу: '+err.message)}}});
-$('task-form').addEventListener('submit',async e=>{e.preventDefault();if(busy)return;const title=$('task-input').value.trim();if(!title)return;const id=$('task-id').value;const status=$('task-status').value;const data={title,notes:$('task-notes').value.trim(),assignee:$('task-assignee').value.trim(),due:$('task-due').value,priority:$('task-priority').value,status,done:status==='Выполнено'};busy=true;$('save-task').disabled=true;try{if(serverMode){await saveTaskRemote({...data,id},!!id)}else{if(id){const t=tasks.find(x=>String(x.id)===String(id));if(t)Object.assign(t,data)}else tasks.unshift({id:'local-'+Date.now(),...data});persistLocal();render()}resetForm()}catch(err){alert('Не удалось сохранить задачу: '+err.message+'\nПроверь соединение и попробуй снова.')}finally{busy=false;$('save-task').disabled=false}});
-$('cancel-edit').addEventListener('click',resetForm);
-let sx=0,sy=0;document.addEventListener('touchstart',e=>{if(e.touches.length===1){sx=e.touches[0].clientX;sy=e.touches[0].clientY}},{passive:true});document.addEventListener('touchend',e=>{if(!sx)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>100&&Math.abs(dy)<70){const p=['home','tasks','team','reports','engineering'],cur=p.findIndex(x=>$('page-'+x).classList.contains('active')),next=Math.max(0,Math.min(p.length-1,cur+(dx<0?1:-1)));if(next!==cur)go(p[next])}sx=0;sy=0},{passive:true});
-loadTasks();
-})();
-</script>
-
-<style>
-#atlas-ai-launcher{position:fixed;right:18px;bottom:100px;z-index:9998;border:1px solid #8bd8ff66;border-radius:50px;background:linear-gradient(135deg,#8bd8ff,#4c9bd4);color:#07111a;padding:14px 18px;font-weight:800;box-shadow:0 8px 28px #0008}
-#atlas-ai-panel{position:fixed;z-index:9999;right:12px;bottom:158px;width:min(420px,calc(100vw - 24px));height:min(570px,calc(100dvh - 190px));min-height:330px;background:#101722;color:#f2f6fc;border:1px solid #8bd8ff55;border-radius:22px;box-shadow:0 18px 55px #000b;display:none;flex-direction:column;overflow:hidden;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-#atlas-ai-panel.open{display:flex}
-#atlas-ai-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px;background:#182637;border-bottom:1px solid #ffffff18}
-#atlas-ai-head strong{font-size:15px}
-#atlas-ai-head small{display:block;color:#91a0b4;margin-top:3px}
-#atlas-ai-close{background:transparent;border:0;color:#f2f6fc;font-size:25px;padding:0 5px}
-#atlas-ai-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
-.atlas-ai-msg{max-width:92%;padding:10px 12px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}
-.atlas-ai-user{align-self:flex-end;background:#24577a}
-.atlas-ai-bot{align-self:flex-start;background:#202b3a;border:1px solid #ffffff12}
-#atlas-ai-compose{display:flex;gap:8px;padding:10px;border-top:1px solid #ffffff18;background:#141e2b}
-#atlas-ai-input{flex:1;min-width:0;resize:none;max-height:100px;border:1px solid #ffffff24;border-radius:12px;background:#080d14;color:#f2f6fc;padding:11px;outline:none;font:inherit}
-#atlas-ai-send{border:0;border-radius:12px;background:#8bd8ff;color:#07111a;font-weight:800;padding:0 13px}
-#atlas-ai-send:disabled{opacity:.5}
-@media(max-width:420px){#atlas-ai-panel{bottom:145px;height:min(530px,calc(100dvh - 175px))}#atlas-ai-launcher{right:12px;bottom:90px}}
-</style>
-
-<button id="atlas-ai-launcher" type="button">✦ Спросить АТЛАС</button>
-
-<section id="atlas-ai-panel" role="dialog" aria-label="Чат с ИИ АТЛАС">
-  <div id="atlas-ai-head">
-    <div>
-      <strong>✦ АТЛАС — ИИ-аналитик</strong>
-      <small id="atlas-ai-status">Готов к работе</small>
-    </div>
-    <button id="atlas-ai-close" type="button" aria-label="Закрыть чат">×</button>
-  </div>
-  <div id="atlas-ai-messages" aria-live="polite">
-    <div class="atlas-ai-msg atlas-ai-bot">Привет! Я АТЛАС. Могу проанализировать задачи из базы, выявить риски и предложить следующие шаги. Что проверим?</div>
-  </div>
-  <form id="atlas-ai-compose">
-    <textarea id="atlas-ai-input" rows="1" maxlength="4000" placeholder="Напиши сообщение…" required></textarea>
-    <button id="atlas-ai-send" type="submit">Отправить</button>
-  </form>
-</section>
-
-<script>
-(function(){
-  const panel=document.getElementById('atlas-ai-panel');
-  const launcher=document.getElementById('atlas-ai-launcher');
-  const close=document.getElementById('atlas-ai-close');
-  const form=document.getElementById('atlas-ai-compose');
-  const input=document.getElementById('atlas-ai-input');
-  const send=document.getElementById('atlas-ai-send');
-  const messages=document.getElementById('atlas-ai-messages');
-  const status=document.getElementById('atlas-ai-status');
-
-  function addMessage(text,kind){
-    const el=document.createElement('div');
-    el.className='atlas-ai-msg '+(kind==='user'?'atlas-ai-user':'atlas-ai-bot');
-    el.textContent=text;
-    messages.appendChild(el);
-    messages.scrollTop=messages.scrollHeight;
-    return el;
-  }
-
-  launcher.addEventListener('click',function(){
-    panel.classList.add('open');
-    input.focus();
-  });
-  close.addEventListener('click',function(){
-    panel.classList.remove('open');
-  });
-
-  input.addEventListener('keydown',function(e){
-    if(e.key==='Enter'&&!e.shiftKey){
-      e.preventDefault();
-      form.requestSubmit();
-    }
-  });
-
-  form.addEventListener('submit',async function(e){
-    e.preventDefault();
-    const message=input.value.trim();
-    if(!message||send.disabled)return;
-
-    addMessage(message,'user');
-    input.value='';
-    send.disabled=true;
-    status.textContent='Анализирую…';
-    const waiting=addMessage('Обращаюсь к ИИ. Подожди немного…','bot');
-
-    try{
-      const response=await fetch('/api/agent',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({message:message})
-      });
-
-      let data;
-      try{data=await response.json();}
-      catch(_){throw new Error('Сервер вернул ответ не в формате JSON.');}
-
-      if(!response.ok){
-        throw new Error(data.details||data.error||('Ошибка HTTP '+response.status));
+        resetTaskForm();
+        await loadTasks();
+        setNotice("task-form-message", id ? "Изменения сохранены." : "Задача создана.", "success");
+        if (result?.task) {
+          const updated = normalizeTask(result.task);
+          const index = tasks.findIndex(task => task.id === updated.id);
+          if (index >= 0) tasks[index] = updated;
+          renderAll();
+        }
+      } catch (error) {
+        setNotice("task-form-message", error.message, "error");
+      } finally {
+        button.disabled = false;
       }
-      if(!data.answer){
-        throw new Error('Сервер ответил, но текст ответа ИИ отсутствует.');
+    });
+
+    $("cancel-edit-button").addEventListener("click", resetTaskForm);
+    $("task-search").addEventListener("input", renderTaskList);
+    $("task-filter-status").addEventListener("change", renderTaskList);
+    $("tasks-reload-button").addEventListener("click", loadTasks);
+    $("refresh-button").addEventListener("click", loadTasks);
+
+    $("task-list").addEventListener("click", async event => {
+      const editButton = event.target.closest("[data-edit]");
+      const deleteButton = event.target.closest("[data-delete]");
+      const toggleButton = event.target.closest("[data-toggle]");
+
+      if (editButton) {
+        editTask(editButton.dataset.edit);
+        return;
       }
 
-      waiting.textContent=data.answer;
-      status.textContent='Ответ получен · задач: '+(data.tasksAnalyzed??'?');
-    }catch(err){
-      waiting.textContent='Не удалось получить ответ: '+err.message+
-        '\n\nПроверь, что Worker содержит маршрут POST /api/agent и секрет OPENROUTER_API_KEY.';
-      status.textContent='Не удалось подключиться';
-    }finally{
-      send.disabled=false;
-      input.focus();
-      messages.scrollTop=messages.scrollHeight;
-    }
-  });
-})();
-</script>
+      if (deleteButton) {
+        const id = deleteButton.dataset.delete;
+        const task = tasks.find(item => item.id === id);
+        if (!task || !confirm(`Удалить задачу «${task.title}»? Это действие нельзя отменить.`)) return;
 
+        deleteButton.disabled = true;
+        try {
+          await api("/tasks/" + encodeURIComponent(id), { method: "DELETE" });
+          await loadTasks();
+        } catch (error) {
+          setNotice("task-list-message", error.message, "error");
+        } finally {
+          deleteButton.disabled = false;
+        }
+        return;
+      }
+
+      if (toggleButton) {
+        const id = toggleButton.dataset.toggle;
+        const task = tasks.find(item => item.id === id);
+        if (!task) return;
+
+        toggleButton.disabled = true;
+        try {
+          await api("/tasks/" + encodeURIComponent(id), {
+            method: "PUT",
+            body: JSON.stringify({
+              status: task.status === "Выполнена" ? "В работе" : "Выполнена"
+            })
+          });
+          await loadTasks();
+        } catch (error) {
+          setNotice("task-list-message", error.message, "error");
+        } finally {
+          toggleButton.disabled = false;
+        }
+      }
+    });
+
+    $("system-check-button").addEventListener("click", async () => {
+      const button = $("system-check-button");
+      button.disabled = true;
+      try {
+        const data = await api("/tasks");
+        const rows = Array.isArray(data) ? data : data?.tasks;
+        if (!Array.isArray(rows)) throw new Error("Неожиданный формат ответа Worker.");
+
+        tasks = rows.map(normalizeTask);
+        setConnection(true, "Проверка успешна · D1 доступна");
+        setNotice("task-list-message", "");
+        renderAll();
+      } catch (error) {
+        setConnection(false, error.message);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    // ИИ-чат
+    function addBubble(text, role = "", error = false) {
+      const bubble = document.createElement("div");
+      bubble.className = "bubble" + (role ? " " + role : "") + (error ? " error" : "");
+      bubble.textContent = text;
+      $("ai-messages").appendChild(bubble);
+      $("ai-messages").scrollTop = $("ai-messages").scrollHeight;
+      return bubble;
+    }
+
+    $("ai-launcher").addEventListener("click", () => {
+      $("ai-chat").classList.toggle("hidden");
+      if (!$("ai-chat").classList.contains("hidden")) $("ai-input").focus();
+    });
+
+    $("ai-close").addEventListener("click", () => $("ai-chat").classList.add("hidden"));
+
+    $("ai-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      if (sendingAI) return;
+
+      const input = $("ai-input");
+      const message = input.value.trim();
+      if (!message) return;
+
+      sendingAI = true;
+      $("ai-send").disabled = true;
+      input.value = "";
+      addBubble(message, "user");
+      const pending = addBubble("АТЛАС готовит ответ…");
+
+      try {
+        const data = await api("/agent", {
+          method: "POST",
+          body: JSON.stringify({ message })
+        });
+
+        pending.remove();
+        addBubble(data?.answer || "Сервер не вернул текст ответа.");
+
+        // После подтверждения действия обновляем список задач.
+        if (/создана и сохранена|обновлена и сохранена/i.test(data?.answer || "")) {
+          await loadTasks();
+        }
+      } catch (error) {
+        pending.remove();
+        addBubble(error.message, "", true);
+      } finally {
+        sendingAI = false;
+        $("ai-send").disabled = false;
+        input.focus();
+      }
+    });
+
+    // Enter отправляет сообщение, Shift+Enter добавляет перенос строки.
+    $("ai-input").addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        $("ai-form").requestSubmit();
+      }
+    });
+
+    // Запускаем приложение только после проверки сессии.
+    (async () => {
+      try {
+        const ok = await checkSession();
+        if (ok) {
+          await loadTasks();
+        }
+      } catch (error) {
+        showLogin("Не удалось проверить сессию. Проверь Worker и попробуй ещё раз.");
+      }
+    })();
+  })();
+  </script>
 </body>
 </html>
