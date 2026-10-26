@@ -1,4 +1,67 @@
 
+<div id="atlas-login" style="display:none;max-width:420px;margin:60px auto;padding:24px;border:1px solid #ccc;border-radius:16px;font-family:Arial,sans-serif">
+  <h2>Вход в АТЛАС</h2>
+  <p>Введи пароль, чтобы продолжить.</p>
+  <form id="atlas-login-form">
+    <input id="atlas-password" type="password" autocomplete="current-password" required placeholder="Пароль" style="box-sizing:border-box;width:100%;padding:12px;margin:8px 0">
+    <button type="submit" style="padding:12px 18px">Войти</button>
+    <p id="atlas-login-error" role="alert"></p>
+  </form>
+</div>
+
+<script>
+(async function () {
+  const login = document.getElementById("atlas-login");
+  const form = document.getElementById("atlas-login-form");
+  const error = document.getElementById("atlas-login-error");
+
+  async function checkSession() {
+    const response = await fetch("/api/session", {
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+    const data = await response.json();
+    login.style.display = data.authenticated ? "none" : "block";
+    return data.authenticated;
+  }
+
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    error.textContent = "";
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          password: document.getElementById("atlas-password").value
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.authenticated) {
+        error.textContent = data.error || "Не удалось войти.";
+        return;
+      }
+
+      document.getElementById("atlas-password").value = "";
+      location.reload();
+    } catch {
+      error.textContent = "Ошибка соединения. Попробуй ещё раз.";
+    }
+  });
+
+  try {
+    await checkSession();
+  } catch {
+    login.style.display = "block";
+    error.textContent = "Не удалось проверить сессию.";
+  }
+})();
+</script>
+
 <!doctype html>
 <html lang="ru">
 <head>
